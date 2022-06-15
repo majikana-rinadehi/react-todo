@@ -1,7 +1,6 @@
 import path from "path"
 import fs from 'fs'
 import { TodoItem } from "../types/data"
-import { isReadable } from "stream"
 
 const TODO_ITEMS_DIR = path.join(process.cwd(), 'todoItems')
 

@@ -4,24 +4,82 @@ import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 import useTodoItems from '../utils/useTodoItems'
 import TodoItem from '../components/TodoItem'
+import PlusIcon from '../components/PlusIcon'
 import { TodoItem as TodoItemType } from '../types/data'
+import { useState, useEffect, useRef, ChangeEvent } from 'react'
+import { format, addDays } from 'date-fns'
 
 type Props = {
-  todoItems: TodoItemType[]
+  todoItemsInit: TodoItemType[]
 }
 
-export const getStaticProps: GetStaticProps<Props> = async() => {
+export const getStaticProps: GetStaticProps<Props> = async () => {
 
   const { getTodoItems } = useTodoItems()
   return {
     props: {
-      todoItems: getTodoItems()
+      todoItemsInit: getTodoItems()
     }
   }
-  
 }
 
-const Home: NextPage<Props> = ({ todoItems }) => {
+const Home: NextPage<Props> = ({ todoItemsInit }) => {
+
+  const [newTodoTitle, setNewTodoTitle] = useState<string>()
+
+  const [editTodoItem, setEditTodoItem] = useState<TodoItemType>()
+
+  const [todoItems, setTodos] = useState<TodoItemType[]>([])
+
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  /**
+   * When Enter key pressed, add Todo Item.
+   * @param e 
+   */
+  const onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setNewTodoTitle(e.target.value)
+  }
+
+  const onClickAddButton = () => {
+    if (!newTodoTitle) return
+    const newTodoItem: TodoItemType = {
+      id: format(new Date(), 'yyyyMMddhhmmss'),
+      title: newTodoTitle,
+      isDone: false,
+      dueDate: format(addDays(new Date(), 1), 'yyyyMMdd')
+    }
+    setTodos([...todoItems, newTodoItem])
+    setNewTodoTitle('')
+    // inputの値を初期化する
+    inputRef.current!.value = ''
+  }
+
+  const deleteTodo = (todoId: string) => {
+    const deleteIndex = todoItems.findIndex(v => {
+      return v.id === todoId
+    })
+    setTodos(todoItems.filter((_, i) => i !== deleteIndex))
+    // ↓this doesn't work (item at wrong index is deleted :(  )
+    //  because splice returns [deleteindex : deleteIndex + 1] array
+    //  and pass it to setTodos.
+    //  And you must not mutate states by method other than setState.
+    // setTodos(todoItems.splice(deleteIndex, 1))
+  }
+
+  const onClickEditButton = (todoId: string) => {
+    setEditTodoItem(todoItems.find(v => v.id === todoId))
+  }
+
+  const updateTodo = () => {
+
+  }
+
+  // 初期表示処理(コンポーネントがマウントされたあとに走る)
+  useEffect(() => {
+    setTodos(todoItemsInit)
+  }, [])
+
   return (
     <div className="py-0 px-8">
       <Head>
@@ -39,19 +97,36 @@ const Home: NextPage<Props> = ({ todoItems }) => {
           Type what you wanna do.
         </p>
 
-        <input
-          className='mx-4 mb-16 w-2/5 text-5xl p-4
-            border-b-4 border-zinc-500 outline-none text-zinc-500 italic
-            placeholder-zinc-300 placeholder:italic'
-          type="text" 
-          placeholder='e.g. Buy tomato'/>
+        <div className='flex justify-center items-center
+                        mx-4 mb-16 w-2/5'>
+          {/* plus icon */}
+          <div onClick={onClickAddButton}>
+            <PlusIcon/>
+          </div>
+          <input
+            ref={inputRef}
+            className='text-5xl p-4
+              border-b-4 border-zinc-500 outline-none text-zinc-500 italic
+              placeholder-zinc-300 placeholder:italic'
+            type="text"
+            placeholder='e.g. Buy tomato'
+            onChange={(e) => onInputChange(e)} />
+        </div>
 
         <div className="flex items-center justify-center flex-col max-w-3xl">
-          {todoItems.map( (todoItem, i) => {
+          {todoItems
+            .sort((a, b) => {
+              if (a.title.length > b.title.length) return 1
+              else if (a.title.length < b.title.length) return -1
+              else return 0
+            })
+            .map((todoItem, i) => {
             return (
-              <TodoItem 
+              <TodoItem
                 todoItem={todoItem}
-                key={i}/>
+                key={i} 
+                onDelete={deleteTodo}
+                onClickEdit={onClickEditButton}/>
             )
           })}
         </div>
