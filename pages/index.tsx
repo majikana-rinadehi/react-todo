@@ -29,7 +29,7 @@ const Home: NextPage<Props> = ({ todoItemsInit }) => {
 
   const [editTodoItem, setEditTodoItem] = useState<TodoItemType>()
 
-  const [todoItems, setTodos] = useState<TodoItemType[]>([])
+  const [todoItems, setTodoItems] = useState<TodoItemType[]>([])
 
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -49,7 +49,7 @@ const Home: NextPage<Props> = ({ todoItemsInit }) => {
       isDone: false,
       dueDate: format(addDays(new Date(), 1), 'yyyyMMdd')
     }
-    setTodos([...todoItems, newTodoItem])
+    setTodoItems([...todoItems, newTodoItem])
     setNewTodoTitle('')
     // inputの値を初期化する
     inputRef.current!.value = ''
@@ -59,7 +59,7 @@ const Home: NextPage<Props> = ({ todoItemsInit }) => {
     const deleteIndex = todoItems.findIndex(v => {
       return v.id === todoId
     })
-    setTodos(todoItems.filter((_, i) => i !== deleteIndex))
+    setTodoItems(todoItems.filter((_, i) => i !== deleteIndex))
     // ↓this doesn't work (item at wrong index is deleted :(  )
     //  because splice returns [deleteindex : deleteIndex + 1] array
     //  and pass it to setTodos.
@@ -71,13 +71,22 @@ const Home: NextPage<Props> = ({ todoItemsInit }) => {
     setEditTodoItem(todoItems.find(v => v.id === todoId))
   }
 
-  const updateTodo = () => {
-
+  const updateTodo = (todoId: string, newTodoTitle: string) => {
+    console.log('todoId:' + todoId)
+    console.log('newTodoTitle:' + newTodoTitle)
+    setTodoItems(todoItems.map(v => {
+      if (v.id === editTodoItem?.id) {
+        v.title = newTodoTitle
+        return v
+      }
+      return v
+    }))
+    setEditTodoItem(undefined)
   }
 
   // 初期表示処理(コンポーネントがマウントされたあとに走る)
   useEffect(() => {
-    setTodos(todoItemsInit)
+    setTodoItems(todoItemsInit)
   }, [])
 
   return (
@@ -107,7 +116,7 @@ const Home: NextPage<Props> = ({ todoItemsInit }) => {
             ref={inputRef}
             className='text-5xl p-4
               border-b-4 border-zinc-500 outline-none text-zinc-500 italic
-              placeholder-zinc-300 placeholder:italic'
+              placeholder-zinc-300 placeholder:italic caret-cyan-700'
             type="text"
             placeholder='e.g. Buy tomato'
             onChange={(e) => onInputChange(e)} />
@@ -126,7 +135,9 @@ const Home: NextPage<Props> = ({ todoItemsInit }) => {
                 todoItem={todoItem}
                 key={i} 
                 onDelete={deleteTodo}
-                onClickEdit={onClickEditButton}/>
+                onEdit={onClickEditButton}
+                isEditing={editTodoItem?.id === todoItem.id}
+                onUpdate={updateTodo}/>
             )
           })}
         </div>
