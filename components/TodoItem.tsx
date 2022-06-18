@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useRef } from "react"
+import React, { FunctionComponent, useEffect, useRef } from "react"
 import { TodoItem } from '../types/data'
 import cn from 'classnames'
 import EditIcon from '../components/EditIcon'
@@ -10,16 +10,23 @@ type Props = {
     onEdit: (todoId: string) => void,
     onUpdate: (todoId: string, newTodoTitle: string) => void,
     isEditing: boolean,
+    onToggle: (todoId: string) => void
 }
 
-const TodoItem: FunctionComponent<Props> = ({ todoItem, onDelete, onEdit, isEditing, onUpdate }) => {
+const TodoItem: FunctionComponent<Props> = ({ todoItem, onDelete, onEdit, isEditing, onUpdate, onToggle }) => {
 
     const inputRef = useRef<HTMLInputElement>(null)
+
+    useEffect(() => {
+        console.log('todoItem.isDone changed')
+    }, [todoItem.isDone])
 
     return (
         <div className='flex m-2 p-3 items-center text-left border border-solid
                         border-zinc-200 rounded-lg max-w-2xl min-w-full'>
-            <div className='mr-1'>
+            <div
+                onClick={() => onToggle(todoItem.id)} 
+                className='mr-1'>
                 {/* checkbox icon */}
                 <svg
                     className={cn(
@@ -39,7 +46,7 @@ const TodoItem: FunctionComponent<Props> = ({ todoItem, onDelete, onEdit, isEdit
                         ref={inputRef}
                         defaultValue={todoItem.title}
                         className='border-b-4 border-solid border-slate-500 outline-none
-                                    italic' />
+                                    italic text-3xl' />
                     <div
                         onClick={() => onUpdate(todoItem.id, inputRef.current!.value)} 
                         className="text-3xl cursor-pointer">
@@ -47,7 +54,13 @@ const TodoItem: FunctionComponent<Props> = ({ todoItem, onDelete, onEdit, isEdit
                     </div>
                 </>
             ) : (
-                <h2 className='m-0 text-2xl'>
+                <h2 
+                    className={cn(
+                        'm-0',
+                        'text-2xl',
+                        todoItem.isDone ? 'line-through' : ''
+
+                    )}>
                     {todoItem.title}
                 </h2>
             )
@@ -59,7 +72,7 @@ const TodoItem: FunctionComponent<Props> = ({ todoItem, onDelete, onEdit, isEdit
             </div>
             <div
                 className="ml-2"
-                onClick={() => onDelete}>
+                onClick={() => onDelete(todoItem.id)}>
                 {/* delete icon */}
                 <TrashIcon />
             </div>

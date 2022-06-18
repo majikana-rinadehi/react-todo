@@ -84,6 +84,18 @@ const Home: NextPage<Props> = ({ todoItemsInit }) => {
     setEditTodoItem(undefined)
   }
 
+  const toggleTodo = (todoId: string) => {
+    console.log("todoId:" + todoId)
+    setTodoItems(todoItems.map(v => {
+      if(v.id === todoId){
+        v.isDone = !v.isDone
+        console.log("v.isDone:" + v.isDone)
+        return v
+      }
+      return v
+    }))
+  } 
+
   // 初期表示処理(コンポーネントがマウントされたあとに走る)
   useEffect(() => {
     setTodoItems(todoItemsInit)
@@ -137,7 +149,8 @@ const Home: NextPage<Props> = ({ todoItemsInit }) => {
                 onDelete={deleteTodo}
                 onEdit={onClickEditButton}
                 isEditing={editTodoItem?.id === todoItem.id}
-                onUpdate={updateTodo}/>
+                onUpdate={updateTodo}
+                onToggle={toggleTodo}/>
             )
           })}
         </div>
