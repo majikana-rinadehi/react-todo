@@ -1,8 +1,9 @@
-import React, { FunctionComponent, useEffect, useRef } from "react"
+import React, { FunctionComponent, useEffect, useRef, useState } from "react"
 import { TodoItem } from '../types/data'
 import cn from 'classnames'
 import EditIcon from '../components/EditIcon'
 import TrashIcon from '../components/TrashIcon'
+import { usePrevious } from '../utils/customHooks'
 
 type Props = {
     todoItem: TodoItem,
@@ -17,9 +18,13 @@ const TodoItem: FunctionComponent<Props> = ({ todoItem, onDelete, onEdit, isEdit
 
     const inputRef = useRef<HTMLInputElement>(null)
 
+    const prevIsEditing = usePrevious<typeof isEditing>(isEditing)
+
     useEffect(() => {
-        console.log('todoItem.isDone changed')
-    }, [todoItem.isDone])
+        if(isEditing){
+            inputRef.current?.focus()
+        }
+    }, [isEditing])
 
     return (
         <div className='flex m-2 p-3 items-center text-left border border-solid

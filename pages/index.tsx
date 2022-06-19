@@ -10,7 +10,7 @@ import { useState, useEffect, useRef, ChangeEvent } from 'react'
 import { format, addDays } from 'date-fns'
 
 type Props = {
-  todoItemsInit: TodoItemType[]
+  initialTodoItems: TodoItemType[]
 }
 
 export const getStaticProps: GetStaticProps<Props> = async () => {
@@ -18,12 +18,12 @@ export const getStaticProps: GetStaticProps<Props> = async () => {
   const { getTodoItems } = useTodoItems()
   return {
     props: {
-      todoItemsInit: getTodoItems()
+      initialTodoItems: getTodoItems()
     }
   }
 }
 
-const Home: NextPage<Props> = ({ todoItemsInit }) => {
+const Home: NextPage<Props> = ({ initialTodoItems: todoItemsInit }) => {
 
   const [newTodoTitle, setNewTodoTitle] = useState<string>()
 
