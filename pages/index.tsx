@@ -5,9 +5,13 @@ import styles from '../styles/Home.module.css'
 import useTodoItems from '../utils/useTodoItems'
 import TodoItem from '../components/TodoItem'
 import PlusIcon from '../components/PlusIcon'
+import { FilterBar } from '../components/FilterBar'
 import { TodoItem as TodoItemType } from '../types/data'
 import { useState, useEffect, useRef, ChangeEvent } from 'react'
 import { format, addDays } from 'date-fns'
+import type { Filter, Sorter } from '../types/utilTypes'
+import { usePrevious } from '../utils/customHooks'
+
 
 type Props = {
   initialTodoItems: TodoItemType[]
@@ -31,12 +35,15 @@ const Home: NextPage<Props> = ({ initialTodoItems: todoItemsInit }) => {
 
   const [todoItems, setTodoItems] = useState<TodoItemType[]>([])
 
+  const [filter, setFilter] = useState<Filter>('')
+  // this doesn't work
+  // const prevFilter = usePrevious<Filter>(filter)
+  const [sorter, setSorter] = useState<Sorter>('')
+  // this doesn't work
+  // const prevSorter = usePrevious<Sorter>(sorter)
+
   const inputRef = useRef<HTMLInputElement>(null)
 
-  /**
-   * When Enter key pressed, add Todo Item.
-   * @param e 
-   */
   const onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setNewTodoTitle(e.target.value)
   }
@@ -96,6 +103,24 @@ const Home: NextPage<Props> = ({ initialTodoItems: todoItemsInit }) => {
     }))
   } 
 
+  const toggleFilter = (nextFilter: Filter) => {
+    console.log('nextFilter:' + nextFilter)
+    // console.log('prevFilter:' + prevFilter)
+    // this doesn't work
+    // if(prevFilter === filter) setFilter('')
+    if(nextFilter === filter) setFilter('')
+    else setFilter(nextFilter)
+  }
+  
+  const toggleSorter = (nextSorter: Sorter) => {
+    console.log('nextSorter:' + nextSorter)
+    // console.log('prevSorter:' + prevSorter)
+    // this doesn't work
+    // if(prevSorter === sorter) setSorter('')
+    if(nextSorter === sorter) setSorter('')
+    else setSorter(nextSorter)
+  }
+
   // 初期表示処理(コンポーネントがマウントされたあとに走る)
   useEffect(() => {
     setTodoItems(todoItemsInit)
@@ -121,9 +146,9 @@ const Home: NextPage<Props> = ({ initialTodoItems: todoItemsInit }) => {
         <div className='flex justify-center items-center
                         mx-4 mb-16 w-2/5'>
           {/* plus icon */}
-          <div onClick={onClickAddButton}>
+          <button onClick={onClickAddButton}>
             <PlusIcon/>
-          </div>
+          </button>
           <input
             ref={inputRef}
             className='text-5xl p-4
@@ -131,8 +156,18 @@ const Home: NextPage<Props> = ({ initialTodoItems: todoItemsInit }) => {
               placeholder-zinc-300 placeholder:italic caret-cyan-700'
             type="text"
             placeholder='e.g. Buy tomato'
-            onChange={(e) => onInputChange(e)} />
+            onChange={(e) => onInputChange(e)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') onClickAddButton()
+            }
+           } />
         </div>
+ 
+        <FilterBar 
+          filter={filter} 
+          sorter={sorter}
+          onClickFilter={toggleFilter}
+          onClickSorter={toggleSorter}/>
 
         <div className="flex items-center justify-center flex-col max-w-3xl">
           {todoItems
