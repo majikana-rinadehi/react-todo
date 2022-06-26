@@ -10,8 +10,6 @@ import { TodoItem as TodoItemType } from '../types/data'
 import { useState, useEffect, useRef, ChangeEvent } from 'react'
 import { format, addDays } from 'date-fns'
 import type { Filter, Sorter } from '../types/utilTypes'
-import { usePrevious } from '../utils/customHooks'
-
 
 type Props = {
   initialTodoItems: TodoItemType[]
@@ -41,6 +39,32 @@ const Home: NextPage<Props> = ({ initialTodoItems: todoItemsInit }) => {
   const [sorter, setSorter] = useState<Sorter>('')
   // this doesn't work
   // const prevSorter = usePrevious<Sorter>(sorter)
+  /** sorted and filtered todoItems (original todoItems is *not* mutated)*/
+  const proceccedTodoItems = todoItems
+    .slice() // because Array.prototype.sort mutates original array!
+    .sort((itemA, itemB) => {
+      switch (sorter) {
+        case 'タイトル':
+          return itemA.title.length - itemB.title.length
+        case '日付':
+          if (itemA.dueDate > itemB.dueDate) return -1
+          else if (itemA.dueDate < itemB.dueDate) return 1
+          else return 0
+        case '':
+          console.log('sorter:', sorter)
+          return 0
+      }
+    })
+    .filter((item) => {
+      switch (filter) {
+        case '':
+          return true
+        case '完了':
+          return item.isDone === true
+        case '未完了':
+          return item.isDone === false
+      }
+    })
 
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -48,6 +72,11 @@ const Home: NextPage<Props> = ({ initialTodoItems: todoItemsInit }) => {
     setNewTodoTitle(e.target.value)
   }
 
+  /**
+   * add new todoItem and reset input
+   * by clicking plus icon or press enter key
+   * @returns 
+   */
   const onClickAddButton = () => {
     if (!newTodoTitle) return
     const newTodoItem: TodoItemType = {
@@ -62,23 +91,32 @@ const Home: NextPage<Props> = ({ initialTodoItems: todoItemsInit }) => {
     inputRef.current!.value = ''
   }
 
+  /**
+   * delete clicked todoId
+   * @param todoId deleted todo's id
+   */
   const deleteTodo = (todoId: string) => {
     const deleteIndex = todoItems.findIndex(v => {
       return v.id === todoId
     })
     setTodoItems(todoItems.filter((_, i) => i !== deleteIndex))
     // ↓this doesn't work (item at wrong index is deleted :(  )
+    // setTodos(todoItems.splice(deleteIndex, 1))
     //  because splice returns [deleteindex : deleteIndex + 1] array
     //  and pass it to setTodos.
     //  And you must not mutate states by method other than setState.
-    // setTodos(todoItems.splice(deleteIndex, 1))
   }
 
+  /**
+   * editing todo
+   * @param todoId id of todoItem gonna be edited 
+   */
   const onClickEditButton = (todoId: string) => {
     setEditTodoItem(todoItems.find(v => v.id === todoId))
   }
 
-  const updateTodo = (todoId: string, newTodoTitle: string) => {
+  /** update todo with newTodoTitle */
+  const onClickUpdateButton = (todoId: string, newTodoTitle: string) => {
     console.log('todoId:' + todoId)
     console.log('newTodoTitle:' + newTodoTitle)
     setTodoItems(todoItems.map(v => {
@@ -91,33 +129,32 @@ const Home: NextPage<Props> = ({ initialTodoItems: todoItemsInit }) => {
     setEditTodoItem(undefined)
   }
 
+  /** switch `done` and `not yet` by clicking check icon */
   const toggleTodo = (todoId: string) => {
     console.log("todoId:" + todoId)
     setTodoItems(todoItems.map(v => {
-      if(v.id === todoId){
+      if (v.id === todoId) {
         v.isDone = !v.isDone
         console.log("v.isDone:" + v.isDone)
         return v
       }
       return v
     }))
-  } 
+  }
 
+  /** switching filter */
   const toggleFilter = (nextFilter: Filter) => {
-    console.log('nextFilter:' + nextFilter)
-    // console.log('prevFilter:' + prevFilter)
     // this doesn't work
     // if(prevFilter === filter) setFilter('')
-    if(nextFilter === filter) setFilter('')
+    if (nextFilter === filter) setFilter('')
     else setFilter(nextFilter)
   }
-  
+
+  /** switching sorter */
   const toggleSorter = (nextSorter: Sorter) => {
-    console.log('nextSorter:' + nextSorter)
-    // console.log('prevSorter:' + prevSorter)
     // this doesn't work
     // if(prevSorter === sorter) setSorter('')
-    if(nextSorter === sorter) setSorter('')
+    if (nextSorter === sorter) setSorter('')
     else setSorter(nextSorter)
   }
 
@@ -147,7 +184,7 @@ const Home: NextPage<Props> = ({ initialTodoItems: todoItemsInit }) => {
                         mx-4 mb-16 w-2/5'>
           {/* plus icon */}
           <button onClick={onClickAddButton}>
-            <PlusIcon/>
+            <PlusIcon />
           </button>
           <input
             ref={inputRef}
@@ -160,34 +197,29 @@ const Home: NextPage<Props> = ({ initialTodoItems: todoItemsInit }) => {
             onKeyDown={(e) => {
               if (e.key === 'Enter') onClickAddButton()
             }
-           } />
+            } />
         </div>
- 
-        <FilterBar 
-          filter={filter} 
+
+        <FilterBar
+          filter={filter}
           sorter={sorter}
-          onClickFilter={toggleFilter}
-          onClickSorter={toggleSorter}/>
+          toggleFilter={toggleFilter}
+          toggleSorter={toggleSorter} />
 
         <div className="flex items-center justify-center flex-col max-w-3xl">
-          {todoItems
-            .sort((a, b) => {
-              if (a.title.length > b.title.length) return 1
-              else if (a.title.length < b.title.length) return -1
-              else return 0
-            })
+          {proceccedTodoItems
             .map((todoItem, i) => {
-            return (
-              <TodoItem
-                todoItem={todoItem}
-                key={i} 
-                onDelete={deleteTodo}
-                onEdit={onClickEditButton}
-                isEditing={editTodoItem?.id === todoItem.id}
-                onUpdate={updateTodo}
-                onToggle={toggleTodo}/>
-            )
-          })}
+              return (
+                <TodoItem
+                  todoItem={todoItem}
+                  key={i}
+                  onDelete={deleteTodo}
+                  onEdit={onClickEditButton}
+                  isEditing={editTodoItem?.id === todoItem.id}
+                  onUpdate={onClickUpdateButton}
+                  onToggle={toggleTodo} />
+              )
+            })}
         </div>
       </main>
 

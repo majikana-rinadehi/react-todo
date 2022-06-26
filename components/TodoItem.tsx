@@ -18,7 +18,7 @@ const TodoItem: FunctionComponent<Props> = ({ todoItem, onDelete, onEdit, isEdit
     const inputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
-        if(isEditing){
+        if (isEditing) {
             inputRef.current?.focus()
         }
     }, [isEditing])
@@ -27,7 +27,7 @@ const TodoItem: FunctionComponent<Props> = ({ todoItem, onDelete, onEdit, isEdit
         <div className='flex m-2 p-3 items-center text-left border border-solid
                         border-zinc-200 rounded-lg max-w-2xl min-w-full'>
             <button
-                onClick={() => onToggle(todoItem.id)} 
+                onClick={() => onToggle(todoItem.id)}
                 className='mr-1'>
                 {/* checkbox icon */}
                 <svg
@@ -50,22 +50,30 @@ const TodoItem: FunctionComponent<Props> = ({ todoItem, onDelete, onEdit, isEdit
                         className='border-b-4 border-solid border-slate-500 outline-none
                                     italic text-3xl' />
                     <button
-                        onClick={() => onUpdate(todoItem.id, inputRef.current!.value)} 
+                        onClick={() => onUpdate(todoItem.id, inputRef.current!.value)}
                         className="text-3xl cursor-pointer"
                         tabIndex={0}>
                         ☑
                     </button>
                 </>
             ) : (
-                <h2 
-                    className={cn(
-                        'm-0',
-                        'text-2xl',
-                        todoItem.isDone ? 'line-through' : ''
+                <>
+                    <h2
+                        className={cn(
+                            'm-0',
+                            'text-2xl',
+                            'todo-title',
+                            todoItem.isDone ? 'line-through' : ''
 
-                    )}>
-                    {todoItem.title}
-                </h2>
+                        )}>
+                        {todoItem.title}
+                    </h2>
+                    <style jsx>{`
+                        .todo-title {
+                            min-width: 15rem;
+                        }
+                `}</style>
+                </>
             )
             }
             <button
