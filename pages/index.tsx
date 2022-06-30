@@ -172,13 +172,24 @@ const Home: NextPage<Props> = ({ initialTodoItems: todoItemsInit }) => {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
+        <h1 className={'m-0 text-6xl'}>
+          Welcome to my 
+          <span 
+          className={'mx-4 bg-black text-white'}>TODO</span>
+          app!
         </h1>
 
-        <p className={styles.description}>
-          Type what you wanna do.
+        <p className={'mt-16 mx-0 mb-4 text-4xl'}>
+          Type what you <b>will</b> do.
         </p>
+
+        <div className='italic'>
+          <ul>
+            <li>- 生活を豊かにする</li>
+            <li>- 開発者もユーザも快適</li>
+            <li>- 義務感よりも、攻めの姿勢と楽しさを</li>
+          </ul>
+        </div>
 
         <div className='flex justify-center items-center
                         mx-4 mb-16 w-2/5'>
